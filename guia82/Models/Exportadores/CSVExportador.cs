@@ -1,17 +1,28 @@
-﻿1
+﻿
 
 namespace guia82.Models.Exportadores
 {
     public class CSVExportador : IExportador
     {
-        string IExportador.Exportar(Multa m)
+       public string Exportar(Multa m)
         {
-            throw new NotImplementedException();
+            return $"{m.Patente};{m.Vencimiento:dd/MM/yyyy}";
         }
 
-        bool IExportador.Importar(string data, Multa m)
+        public bool Importar(string data, Multa m)
         {
-            throw new NotImplementedException();
+             string[] campos = data.Split(';');
+            if (campos.Length != 3) return false;
+
+            string patente = campos[0];
+            DateOnly vencimiento = DateOnly.ParseExact(campos[1], "dd/MM/yyyy");
+            double importe = double.Parse(campos[2]);
+
+            m.Patente = patente;
+            m.Vencimiento = vencimiento;
+            m.Importe = importe;
+
+            return true;
         }
     }
 }
