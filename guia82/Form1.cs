@@ -1,4 +1,6 @@
 using guia82.Models;
+using guia82.Models.Exportadores;
+using System.Windows.Forms;
 
 namespace guia82
 {
@@ -6,6 +8,8 @@ namespace guia82
     {
 
         List<IExportable> multas = new List<IExportable>();
+        ExportadorFactory factory = new ExportadorFactory();
+        OpenFileDialog ofd = new OpenFileDialog();
         public Form1()
         {
             InitializeComponent();
@@ -63,6 +67,66 @@ namespace guia82
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+            ofd.Filter = "(csv)|*.csv|(json)|*.json|(txt)|*.txt|(xml)|*.xml";
+
+            if (ofd.ShowDialog()== DialogResult.OK)
+            {
+                string path = ofd.FileName;
+                int tipo = ofd.FilterIndex;
+
+                IExportador exportador = factory.GetInstance(tipo);
+                FileStream fs = null;
+                StreamReader sr = null;
+
+                try
+                {
+                    fs = new FileStream(path,FileMode.Open,FileAccess.Read);
+                    sr = new StreamReader(fs);
+
+                    sr.ReadLine();
+
+                    while (!sr.EndOfStream)
+                    {
+                        string linea = sr.ReadLine();
+                        IExportable nuevo = new Multa();
+                        if (nuevo.Importar(linea, exportador) == true)
+                        {
+                            int idx = multas.BinarySearch(nuevo);
+                            if (idx >= 0)
+                            {
+                                Multa multa = multas[idx] as Multa;
+                                multa.Importe += ((Multa)nuevo).Importe;
+                                if (multa.Vencimiento < ((Multa)nuevo).Vencimiento) ;
+                                multa.Vencimiento = ((Multa)nuevo).Vencimiento;
+                            }
+                            else
+                            {
+                                multas.Add(nuevo);
+                            }
+                        }
+                    }
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+                finally
+                {
+                    if (sr != null)
+                        sr.Close();
+                    if (fs != null)
+                        fs.Close();
+                }
+
+            }
+
+            button1.PerformClick();
 
         }
     }

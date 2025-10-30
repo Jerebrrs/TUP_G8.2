@@ -7,11 +7,22 @@ namespace guia82.Models.Exportadores
         public IExportador GetInstance(int tipo)
         {
             IExportador exportador = null;
-
-            if (tipo ==1)
+            switch (tipo)
             {
-                exportador = new CSVExportador();
+                case 1:
+                    exportador = new CSVExportador();
+                    break;
+                case 2:
+                    exportador = new XMLExportador();
+                    break;
+                case 3:
+                    exportador = new CampoFijoExportador();
+                    break;
+                default:
+                    exportador = new XMLExportador();
+                    break;
             }
+           
             return exportador;
         }
     }
